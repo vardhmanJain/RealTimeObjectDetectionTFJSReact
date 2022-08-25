@@ -41,7 +41,8 @@ function App() {
       canvasRef.current.height = videoHeight;
 
       // Make Detections
-      const obj = await net.detect(video);
+      let obj = await net.detect(video);
+      obj = await obj.filter((data)=> data.class != "person");
 
       // Draw mesh
       const ctx = canvasRef.current.getContext("2d");
