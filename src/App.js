@@ -9,7 +9,13 @@ import { drawRect } from "./utilities";
 function App() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
+  const FACING_MODE_USER = "user";
+  const videoConstraints = {
+    facingMode: FACING_MODE_USER
+  };
+  const FACING_MODE_ENVIRONMENT = "environment";
 
+  const [facingMode, setFacingMode] = React.useState(FACING_MODE_USER);
   // Main function
   const runCoco = async () => {
     const net = await cocossd.load();
@@ -42,22 +48,31 @@ function App() {
 
       // Make Detections
       let obj = await net.detect(video);
-      obj = await obj.filter((data)=> data.class != "person");
+      obj = await obj.filter((data) => data.class != "person");
 
       // Draw mesh
       const ctx = canvasRef.current.getContext("2d");
-      drawRect(obj, ctx); 
+      drawRect(obj, ctx);
     }
   };
+  const onChangeCamera = React.useCallback(() => {
+    console.log("onChangeCamera")
+    setFacingMode(
+      prevState =>
+        prevState === FACING_MODE_USER
+          ? FACING_MODE_ENVIRONMENT
+          : FACING_MODE_USER
+    );
+  }, []);
 
-  useEffect(()=>{runCoco()},[]);
+  useEffect(() => { runCoco() }, []);
 
   return (
     <div className="App">
       <header className="App-header">
         <Webcam
           ref={webcamRef}
-          muted={true} 
+          muted={true}
           style={{
             position: "absolute",
             marginLeft: "auto",
@@ -68,6 +83,10 @@ function App() {
             zindex: 9,
             width: 640,
             height: 480,
+          }}
+          videoConstraints={{
+            ...videoConstraints,
+            facingMode
           }}
         />
 
@@ -85,6 +104,7 @@ function App() {
             height: 480,
           }}
         />
+        <button className="button" style={{ zIndex: 1 }} onClick={onChangeCamera}>Switch Camera </button>
       </header>
     </div>
   );
